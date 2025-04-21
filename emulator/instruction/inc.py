@@ -1,0 +1,2 @@
+class Inc(Instruction):
+    pass

@@ -1,0 +1,2 @@
+class Jmp(Instruction):
+    pass

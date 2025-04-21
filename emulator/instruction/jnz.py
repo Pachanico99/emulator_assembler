@@ -1,0 +1,2 @@
+class Jnz(Instruction):
+    pass

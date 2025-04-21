@@ -1,0 +1,2 @@
+class Cmp(Instruction):
+    pass

@@ -1,0 +1,2 @@
+class Dec(Instruction):
+    pass
