@@ -15,7 +15,7 @@ class Assembler:
         self.sourceCodeInstructions: list[str] = []                            # Lista de instrucciones sin parsear
         self.errors: list[str] = []                                            # Lista de errores encontrados
         self.pointer = Pointer()                                               # Puntero
-        self.main_label_index: int = -1
+        self.main_label_index: int = -1                                        # Indice de la etiqueta de inicio
 
         # Defino los patrones de busqueda
         self.label_pattern = re.compile(r'^\s*[A-Za-z_][A-Za-z0-9_]*:\s*$')
