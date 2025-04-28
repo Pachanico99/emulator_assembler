@@ -28,6 +28,8 @@ class Assembler:
         try:
             with open(file_path, 'r') as file:
                 for line_num, line in enumerate(file, 1):
+                    #print(f"Línea {line_num}: {line}") # debug
+
                     original_line = line.rstrip() # saco el '\n'
 
                     # Elimino los comentarios y espacios extra
@@ -54,14 +56,14 @@ class Assembler:
                             self.instructions.append(InstructionFactory.create_noop())
 
                         else:
-                            self.sourceCodeInstructions.append(line_stripped)
                             instruction = self.parsear_instruccion(line_stripped)
                             self.instructions.append(instruction)
                             self.pointer.increment()
 
+                        self.sourceCodeInstructions.append(line_stripped)
                     except Exception as e:
                         self.errors.append(f"[Línea {line_num}] Error: {str(e)}")
-
+                
         except FileNotFoundError:
             self.errors.append(f"Archivo no encontrado '{file_path}'")
         except Exception as e:
@@ -81,7 +83,7 @@ class Assembler:
             # log para debug
             """
             print("Archivo ensamblado correctamente.")
-            print("\n--- Tabla de Símbolos ---")
+            print("\n--- Tabla de Etiquetas ---")
             for label, address in self.lookup_table.items():
                 print(f"{label}: {address}")
             print("\n--- Instrucciones Parseadas ---")
@@ -117,8 +119,9 @@ class Assembler:
 
         if match:
             name = match.group(1).lower()
-            params = match.group(2)
-            print(f"Nombre: {name}, Parámetros: {params}")
+            params = match.group(2).lower()
+            
+            #print(f"Nombre: {name}, Parámetros: {params}") # debug
 
             # Los separo por coma y saco los espacios
             params = [p.strip() for p in params.split(',')]

@@ -15,7 +15,10 @@ class Runnable:
         pass
 
     def show_status(self):
-        print(f'--- Pointer ---')
+        print(f'\n----- ---- ---- -----')
+        print(f'-----   STATUS  -----')
+        print(f'----- ---- ---- -----')
+        print(f'\n--- Pointer ---')
         print(f'Index: {self.pointer.getIndex()}')
         
         print(f'\n--- Processor ---')
@@ -25,7 +28,7 @@ class Runnable:
         print(f'Processor <IP>: {self.ip.getIndex()}')
         print(f'Processor <flag>: {self.processor.getFlag()}')
 
-        print("\n--- Tabla de Símbolos ---")
+        print("\n--- Tabla de Etiquetas ---")
         for label, address in self.lookup_table.items():
             print(f"Etiqueta: {label}, Indice: {address}")
 
