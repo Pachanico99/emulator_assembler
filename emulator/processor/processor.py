@@ -1,7 +1,9 @@
+from sys import exception
 from emulator.pointer.pointer import Pointer
+from emulator.runnable.runnable import Runnable
 
 class Processor:
-    def __init__(self):
+    def __init__(self, main_index:int):
         self.registers: dict[str, int] = {
             'ax': 0,
             'bx': 0,
@@ -9,7 +11,7 @@ class Processor:
             'dx': 0
         }
         self.flag: bool = False
-        self.ip = Pointer(0)
+        self.ip = Pointer(main_index)
     
     def set_flag_false(self):
         self.flag = False
@@ -17,14 +19,22 @@ class Processor:
     def set_flag_true(self):
         self.flag = True
 
+    def get_flag(self):
+        return self.flag
+
     def increment_ip(self):
         self.ip.increment()
 
-    def getRegisters(self):
-        return self.registers
+    def jump_to_label(self, index:int):
+        self.ip.set_index(index)
 
-    def getFlag(self):
-        return self.flag
-
-    def getIp(self):
+    def get_ip(self):
         return self.ip
+    
+    def get_register(self, name):
+        if name not in self.registers:
+            raise Exception(f"Registro desconocido: {name}")
+        return self.registers[name]
+    
+    def run(self, runnable:Runnable):
+        pass
