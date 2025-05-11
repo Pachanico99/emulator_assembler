@@ -1,15 +1,11 @@
-from emulator.processor.processor import Processor
-from emulator.pointer.pointer import Pointer
 from emulator.instruction.instruction import Instruction
 
 class Runnable:
     def __init__(self, main_index:int, instructions: list[Instruction], sourceCodeInstructions: list[str], lookup_table: dict[str, int]):
-        self.pointer = Pointer(main_index)
         self.instructions =  instructions
         self.sourceCodeInstructions = sourceCodeInstructions
         self.lookup_table = lookup_table
-        self.ip = Pointer(main_index)
-        self.processor = Processor()
+        self.main_index = main_index
         
     def run(self):
         pass
@@ -18,15 +14,8 @@ class Runnable:
         print(f'\n----- ---- ---- -----')
         print(f'-----   STATUS  -----')
         print(f'----- ---- ---- -----')
-        print(f'\n--- Pointer ---')
-        print(f'Index: {self.pointer.getIndex()}')
-        
-        print(f'\n--- Processor ---')
-        print(f'Processor <registers>:')
-        for register, value in self.processor.getRegisters().items():
-            print(f'{register}: {value}')
-        print(f'Processor <IP>: {self.ip.getIndex()}')
-        print(f'Processor <flag>: {self.processor.getFlag()}')
+        print(f'\n--- Main Index ---')
+        print(f'Index: {self.main_index}')
 
         print("\n--- Tabla de Etiquetas ---")
         for label, address in self.lookup_table.items():
