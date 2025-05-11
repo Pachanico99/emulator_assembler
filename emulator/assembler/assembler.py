@@ -2,64 +2,66 @@ import re
 from emulator.pointer.pointer import Pointer
 from emulator.instruction.instruction_factory import InstructionFactory
 from emulator.instruction.instruction import Instruction
+from emulator.instruction.jnz import Jnz
+from emulator.instruction.jmp import Jmp
 from emulator.runnable.runnable import Runnable
-
-COMMENT_SYMBOLS = ['#',';']
-MAIN_LABEL = 'main'
+from emulator.config.config import Config
 
 class Assembler:
     def __init__(self):
-        self.lookup_table: dict[str, int] = {}                                 # Tabla de simbolos con formato {etiqueta: direccion}
+        self.lookup_table: dict[str, int] = {}                                 # Tabla de simbolos {etiqueta: direccion}
         self.instructions: list[Instruction] = []                              # Lista de instrucciones parseadas
-        self.source_code_instructions: list[str] = []                          # Lista de instrucciones sin parsear
+        self.sourceCodeInstructions: list[str] = []                            # Lista de instrucciones sin parsear
         self.errors: list[str] = []                                            # Lista de errores encontrados
         self.pointer = Pointer()                                               # Puntero
         self.main_label_index: int = -1                                        # Indice de la etiqueta de inicio
+        self.lookup_table_validation: list[tuple[str, int]] = []               # Tabla de simbolos para validar {etiqueta: existencia}
 
         # Defino los patrones de busqueda
         self.label_pattern = re.compile(r'^\s*[A-Za-z_][A-Za-z0-9_]*:\s*$')
 
-        self.instruction_pattern = re.compile(r'^\s*(mov|add|inc|jmp|jnz|cmp|dec)\s+([A-Za-z0-9_]+(?:\s*,\s*[A-Za-z0-9_]+)?)\s*$')
+        self.instruction_pattern = re.compile(r'^\s*(' + Config.get_valid_instruction_pattern() + r')(?:\s+(.*))?\s*$')
 
-        self.comment_start_pattern = re.compile(r'\s*[' + re.escape(''.join(COMMENT_SYMBOLS)) + r'].*$')
+        self.comment_start_pattern = re.compile(r'\s*[' + Config.get_comment_symbols_pattern() + r'].*$')
 
     def assemble(self, file_path: str) -> Runnable:
         try:
             with open(file_path, 'r') as file:
-                for line_num, line in enumerate(file, 1):
-                    #print(f"Línea {line_num}: {line}")     # debug
+                print(f"Ensamblando archivo: {file.name}")
 
-                    original_line = line.rstrip()
+                for line_num, line in enumerate(file, 1):
+                    #print(f"Línea {line_num}: {line}")                                                                 # debug
 
                     # Elimino los comentarios y espacios extra
-                    line_without_comment = self.extract_comment(original_line)
+                    original_line = line.rstrip()
+                    line_without_comment = self.extractComment(original_line)
                     line_stripped = line_without_comment.strip()
+
+                    #print(f"Línea {line_num}: {line_stripped}")                                                        # debug
 
                     # Ignoro las lineas vacias o que son solo comentarios
                     if not line_stripped:
                         continue
 
-                    # Proceso la linea
                     try:
-                        if self.is_label(line_stripped):
-                            label = line_stripped[:-1] # tomo todo menos los :
-                            if label.lower() == MAIN_LABEL:
+                        if self.isLabel(line_stripped):
+                            label = line_stripped[:-1].lower() # tomo todo menos los :
+                            if label == Config.get_label_main_name():
                                 self.main_label_index = self.pointer.get_index()
                                 
                             if label in self.lookup_table:
-                                # Si esta, entonces es una etiqueta duplicada y genero un Error
-                                self.errors.append(f"[Linea {line_num}] Error: Etiqueta duplicada '{label}'")
+                                # Si esta, entonces es una etiqueta duplicada y genero un error
+                                self.errors.append(f"[Línea {line_num}] Error: Etiqueta duplicada '{label}'")
 
                             self.lookup_table[label] = self.pointer.get_index()
-                            self.pointer.increment()
                             self.instructions.append(InstructionFactory.create_noop())
 
                         else:
-                            instruction = self.parse_instruction(line_stripped)
+                            instruction = self.parsear_instruccion(line_stripped, line_num)
                             self.instructions.append(instruction)
-                            self.pointer.increment()
 
-                        self.source_code_instructions.append(line_stripped)
+                        self.pointer.increment()
+                        self.sourceCodeInstructions.append(line_stripped)
                     except Exception as e:
                         self.errors.append(f"[Línea {line_num}] Error: {str(e)}")
                 
@@ -70,7 +72,12 @@ class Assembler:
 
         # Reviso que este la etiqueta main
         if self.main_label_index == -1:
-            self.errors.append(f"Error: No se encontro la etiqueta '{MAIN_LABEL}' en el archivo.")
+            self.errors.append(f"Error: No se encontro la etiqueta '{Config.get_label_main_name()}' en el archivo.")
+
+        # Reviso que las etiquetas que se usaron en las instrucciones existan
+        for label, index in self.lookup_table_validation:
+            if label not in self.lookup_table:
+                self.errors.append(f"[Línea {index}] Error: Etiqueta '{label}' no encontrada en el archivo.")
 
         # Reporto los errores
         if self.errors:
@@ -90,40 +97,51 @@ class Assembler:
                 print("Name <" + instr.instruction_name() + ">" + ", Pos <" + str(index) + ">")
             """
 
-        runnable = Runnable(self.main_label_index, self.instructions, self.source_code_instructions, self.lookup_table)
-        runnable.show_status()
+        runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table)
+        #runnable.show_status()
         return runnable
 
-    def extract_comment(self, line: str) -> str:
+    def extractComment(self, line: str) -> str:
         match = self.comment_start_pattern.search(line)
         if match:
             return line[:match.start()]
         return line
 
-    def is_only_comment(self, line: str) -> bool:
+
+    def isOnlyComment(self, line: str) -> bool:
         line_leading_stripped = line.lstrip()
         if not line_leading_stripped:
             return False
-        return line_leading_stripped[0] in COMMENT_SYMBOLS
+        return line_leading_stripped[0] in Config.get_comment_symbols()
 
-    def is_empty(self, line: str) -> bool:
+    def isEmpty(self, line: str) -> bool:
         return not line or line.strip() == ""
 
-    def is_label(self, line: str) -> bool:
+    def isLabel(self, line: str) -> bool:
         return self.label_pattern.fullmatch(line) is not None
 
-    def parse_instruction(self, line: str) -> Instruction:
+    def parsear_instruccion(self, line: str, index: int) -> Instruction:
         match = self.instruction_pattern.fullmatch(line)
+        #print(match)                                                                                                   # debug                   
 
         if match:
             name = match.group(1).lower()
-            params = match.group(2).lower()
-            
-            #print(f"Nombre: {name}, Parámetros: {params}") # debug
+            params = match.group(2)
+
+            #print(f"Nombre: {name}, Parámetros: {params}")                                                             # debug
 
             # Los separo por coma y saco los espacios
-            params = [p.strip() for p in params.split(',')]
+            if params is not None:
+                raw_params = [p.strip() for p in params.lower().split(',')]
+            else:
+                raw_params = []
 
-            return InstructionFactory.create_instruction(name, params)
+            instruction = InstructionFactory.create_instruction(name, raw_params)
+
+            if isinstance(instruction, Jnz) or isinstance(instruction, Jmp):
+                #print(f"Etiqueta: {raw_params[0]}, Indice: {index}")                                                   # debug          
+                self.lookup_table_validation.append((raw_params[0], index))
+
+            return instruction
         else:
-            raise Exception(f"Error: sintaxis incorrecta para instrucción: '{line}'")
+            raise Exception(f"Instruccion invalida: '{line}'")
