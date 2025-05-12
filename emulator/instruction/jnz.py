@@ -5,8 +5,9 @@ class Jnz(Instruction):
     def __init__(self, label):
         self.label = label
 
-    def execute(self, processor:Processor):
-        pass
+    def execute(self, processor: Processor):
+        if processor.get_flag():
+            processor.jump_ip(processor.runnable.lookup_table[self.label])
 
     @staticmethod
     def instruction_name() -> str:

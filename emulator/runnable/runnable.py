@@ -1,7 +1,7 @@
-from emulator.instruction.instruction import Instruction
+from __future__ import annotations
 
 class Runnable:
-    def __init__(self, main_index:int, instructions: list[Instruction], sourceCodeInstructions: list[str], lookup_table: dict[str, int]):
+    def __init__(self, main_index:int, instructions: list["Instruction"], sourceCodeInstructions: list[str], lookup_table: dict[str, int]):
         self.instructions =  instructions
         self.sourceCodeInstructions = sourceCodeInstructions
         self.lookup_table = lookup_table

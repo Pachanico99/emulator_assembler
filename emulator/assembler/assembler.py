@@ -85,6 +85,8 @@ class Assembler:
             for err in self.errors:
                 print(err)
             print(f"Ensamblado fallido con {len(self.errors)} error/es.")
+            return None
+
         #else:
             # log para debug
             """
@@ -99,6 +101,8 @@ class Assembler:
 
         runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table)
         #runnable.show_status()
+        print("\nEnsamblado exitoso.")
+
         return runnable
 
     def extractComment(self, line: str) -> str:
