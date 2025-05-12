@@ -5,7 +5,7 @@ from emulator.processor.processor import Processor
 class Instruction(metaclass=ABCMeta):
     
     @abstractmethod
-    def execute(self, processor:Processor):
+    def execute(self, processor: Processor):
         pass
 
     @staticmethod

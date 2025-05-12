@@ -5,7 +5,7 @@ class Noop(Instruction):
     def __init__(self):
         pass
         
-    def execute(self, processor:Processor):
+    def execute(self, processor: Processor):
         pass
         
     @staticmethod
