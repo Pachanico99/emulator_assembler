@@ -9,11 +9,11 @@ class EmulatorCLI:
         self.paused = False
         self.scroll_offset = 0
         
-        self.screen_height = 30
+        self.screen_height = 15
         self.left_col_width = 30
         self.code_col_width = 50
 
-        self.auto_run_interval_seconds = 0.12
+        self.auto_run_interval_seconds = 1
         self.processor = processor
 
         self.COLOR_YELLOW = "\033[93m"   
