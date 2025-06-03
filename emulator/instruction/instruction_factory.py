@@ -10,6 +10,10 @@ from emulator.instruction.dec import Dec
 from emulator.instruction.noop import Noop
 from emulator.instruction.instruction import Instruction
 from emulator.config.config import Config
+from emulator.instruction.push import Push
+from emulator.instruction.pop import Pop
+from emulator.instruction.call import Call
+from emulator.instruction.ret import Ret
 
 class InstructionFactory:
     REGISTER_PARAM_TYPE = 'register'
@@ -24,6 +28,10 @@ class InstructionFactory:
         Jmp.instruction_name().lower(): (Jmp, [LABEL_PARAM_TYPE]),
         Jnz.instruction_name().lower(): (Jnz, [LABEL_PARAM_TYPE]),
         Cmp.instruction_name().lower(): (Cmp, [REGISTER_OR_IMMEDIATE_PARAM_TYPE, REGISTER_OR_IMMEDIATE_PARAM_TYPE]),
+        Push.instruction_name().lower(): (Push, [REGISTER_OR_IMMEDIATE_PARAM_TYPE]),
+        Pop.instruction_name().lower(): (Pop, [REGISTER_PARAM_TYPE]),
+        Call.instruction_name().lower(): (Call, [LABEL_PARAM_TYPE]),
+        Ret.instruction_name().lower(): (Ret, []),
     }
     LABEL_FORMAT_PATTERN = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 

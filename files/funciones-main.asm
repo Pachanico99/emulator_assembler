@@ -1,0 +1,62 @@
+include "funciones-suma.asm"
+
+main:
+        push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 7
+    push 5
+    push 5
+    push 7
+    call sumar
+    dec ax
+    
+    ; Resultado en AX

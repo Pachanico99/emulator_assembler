@@ -6,14 +6,13 @@ from emulator.config.config import Config
 class EmulatorCLI:
     def __init__(self, processor: Processor):
         self.running = True
-        self.paused = False
         self.scroll_offset = 0
         
-        self.screen_height = 15
+        self.screen_height = 20
         self.left_col_width = 30
         self.code_col_width = 50
 
-        self.auto_run_interval_seconds = 1
+        self.auto_run_interval_seconds = Config.get_auto_run_interval_seconds()
         self.processor = processor
 
         self.COLOR_YELLOW = "\033[93m"   
@@ -21,27 +20,38 @@ class EmulatorCLI:
         if os.name == 'nt':
             os.system('')
 
-    def get_processor_state_lines(self):
+    def get_processor_state_lines(self, q_instructions: int):
         state_lines = []
         state_lines.append("Estado del procesador:")
         state_lines.append(f" IP: {self.processor.ip.get_index()}")
         state_lines.append(f" Flag: {self.processor.get_flag()}")
-        state_lines.append(" Registros:")
+        state_lines.append(f" Registros:")
         
         for register in Config.get_valid_registers():
             register_value = self.processor.get_register(register)
             state_lines.append(f"   {register}: {register_value}")
-        
+
+        state_lines.append(" Stack:")
+        # Reservo los espacios para "====" y "Cantidad de instrucciones"
+        reserved_lines = 2 
+        max_lines_available = self.screen_height - len(state_lines) - reserved_lines
+        stack_to_show = list(reversed(self.processor.stack))[:max_lines_available]
+
+        for i, value in enumerate(stack_to_show):
+            state_lines.append(f"   {len(self.processor.stack) - 1 - i}: {value}")
+
         state_lines.append("=" * self.left_col_width)
+        state_lines.append(f" Cantidad de instrucciones: {q_instructions}")
 
         while len(state_lines) < self.screen_height:
             state_lines.append("")
+
         return state_lines[:self.screen_height]
 
-    def draw_view(self):
+    def draw_view(self, q_instructions: int):
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        processor_state_lines = self.get_processor_state_lines()
+        processor_state_lines = self.get_processor_state_lines(q_instructions)
         instructions = self.processor.runnable.sourceCodeInstructions
         num_instructions = len(instructions)
         current_ip_to_execute = self.processor.ip.get_index()
@@ -92,19 +102,17 @@ class EmulatorCLI:
 
     def run(self):
         try:
+            num_instructions = len(self.processor.runnable.sourceCodeInstructions)
             while self.running: 
-
                 current_ip = self.processor.ip.get_index()
-                num_instructions = len(self.processor.runnable.sourceCodeInstructions)
-                
-                if not self.paused and current_ip < num_instructions and self.running:
+
+                if current_ip <= num_instructions:
+                    self.draw_view(num_instructions)
                     time.sleep(self.auto_run_interval_seconds)
-                    self.draw_view()
                     self.processor.step()
-                elif self.paused and self.running:
-                    pass 
-                elif current_ip >= num_instructions:
+                else:
                     self.running = False
+                
 
         finally:
             print("Terminando el emulador...")

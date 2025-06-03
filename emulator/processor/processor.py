@@ -12,6 +12,7 @@ class Processor:
         self.flag: bool = False
         self.ip = Pointer(main_index)
         self.runnable = runnable
+        self.stack = []
 
     def get_registers(self):
         return self.registers
@@ -41,8 +42,11 @@ class Processor:
         self.registers[name] = value
 
     def step(self):
-        if self.ip.get_index() < len(self.runnable.instructions):
-            instruction = self.runnable.instructions[self.ip.get_index()]
-            instruction.execute(self)
+        if self.ip.get_index() >= len(self.runnable.instructions):
             self.ip.increment()
+            return
+            
+        instruction = self.runnable.instructions[self.ip.get_index()]
+        instruction.execute(self)
+        self.ip.increment()
     

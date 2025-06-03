@@ -1,10 +1,11 @@
 from emulator.assembler.assembler import Assembler
 from emulator.processor.processor import Processor
 from emulator.emulator_gui.emulator_gui import EmulatorCLI
+from emulator.config.config import Config
 
 def main():
     assembler = Assembler()
-    runnable = assembler.assemble('./files/test3.asm')
+    runnable = assembler.assemble(Config.get_input_file())
     if runnable is None:
         return
     processor = Processor(runnable.main_index, runnable)

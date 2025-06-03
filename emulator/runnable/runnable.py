@@ -6,9 +6,6 @@ class Runnable:
         self.sourceCodeInstructions = sourceCodeInstructions
         self.lookup_table = lookup_table
         self.main_index = main_index
-        
-    def run(self):
-        pass
 
     def show_status(self):
         print(f'\n----- ---- ---- -----')
