@@ -6,7 +6,8 @@ class Push(Instruction):
         self.value = value
 
     def execute(self, processor: Processor):
-        processor.stack.append(self.get_value(self.value, processor))
+        processor.get_process().get_stack().append(self.get_value(self.value, processor))
+        processor.increment_ip()
 
     def get_value(self, value, processor: Processor):
         if isinstance(value, str):

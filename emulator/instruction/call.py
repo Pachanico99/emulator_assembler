@@ -7,8 +7,8 @@ class Call(Instruction):
 
     def execute(self, processor: Processor):
         next_index = processor.get_ip().get_index()
-        processor.stack.append(next_index)
-        processor.jump_ip(processor.runnable.lookup_table[self.label])
+        processor.get_process().get_stack().append(next_index + 1)
+        processor.jump_ip(processor.get_process().get_runnable().get_lookup_table()[self.label])
 
     @staticmethod
     def instruction_name() -> str:

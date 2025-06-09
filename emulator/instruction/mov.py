@@ -9,6 +9,7 @@ class Mov(Instruction):
     def execute(self, processor: Processor):
         self.set_value(self.value, processor)
         processor.set_register(self.register, self.value)
+        processor.increment_ip()
 
     def set_value(self, value, processor: Processor):
         if isinstance(value, str):

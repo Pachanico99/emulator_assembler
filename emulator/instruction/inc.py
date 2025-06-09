@@ -9,6 +9,7 @@ class Inc(Instruction):
         current_value = processor.get_register(self.register)
         increment = current_value + 1
         processor.set_register(self.register, increment)
+        processor.increment_ip()
 
     def set_values(self, register, processor: Processor):
         if isinstance(register, str):

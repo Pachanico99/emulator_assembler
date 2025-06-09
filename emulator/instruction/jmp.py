@@ -6,7 +6,7 @@ class Jmp(Instruction):
         self.label = label
 
     def execute(self, processor: Processor):
-        processor.jump_ip(processor.runnable.lookup_table[self.label])
+        processor.jump_ip(processor.get_process().get_runnable().get_lookup_table()[self.label])
 
     @staticmethod
     def instruction_name() -> str:

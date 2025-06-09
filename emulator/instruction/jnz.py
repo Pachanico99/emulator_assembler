@@ -7,7 +7,9 @@ class Jnz(Instruction):
 
     def execute(self, processor: Processor):
         if processor.get_flag():
-            processor.jump_ip(processor.runnable.lookup_table[self.label])
+            processor.jump_ip(processor.get_process().get_runnable().get_lookup_table()[self.label])
+        else:
+            processor.increment_ip()
 
     @staticmethod
     def instruction_name() -> str:

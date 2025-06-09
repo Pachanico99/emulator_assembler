@@ -6,7 +6,7 @@ class Ret(Instruction):
         pass
 
     def execute(self, processor: Processor):
-        next_index = processor.stack.pop()
+        next_index = processor.get_process().get_stack().pop()
         processor.jump_ip(next_index)
 
     @staticmethod

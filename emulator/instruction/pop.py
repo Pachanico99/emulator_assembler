@@ -6,8 +6,9 @@ class Pop(Instruction):
         self.register = register
 
     def execute(self, processor: Processor):
-        value = processor.stack.pop()
+        value = processor.get_process().get_stack().pop()
         processor.set_register(self.register, value)
+        processor.increment_ip()
 
     @staticmethod
     def instruction_name() -> str:

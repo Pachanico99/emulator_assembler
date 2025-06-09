@@ -16,6 +16,8 @@ class Cmp(Instruction):
         else:
             processor.set_flag_true()
 
+        processor.increment_ip()
+
     def set_values(self, processor: Processor):
         if isinstance(self.value_raw, str):
             self.value = processor.get_register(self.value_raw)

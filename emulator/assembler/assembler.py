@@ -7,7 +7,6 @@ from emulator.instruction.jmp import Jmp
 from emulator.runnable.runnable import Runnable
 from emulator.config.config import Config
 import os
-import time
 
 class Assembler:
     def __init__(self):
@@ -23,14 +22,24 @@ class Assembler:
         # Defino los patrones de busqueda
         self.label_pattern = re.compile(r'^\s*[A-Za-z_][A-Za-z0-9_]*:\s*$')
 
-        self.instruction_pattern = re.compile(r'^\s*(' + Config.get_valid_instruction_pattern() + r')(?:\s+(.*))?\s*$', re.IGNORECASE)
+        self.instruction_pattern = re.compile(r'^\s*(' + '|'.join(InstructionFactory.get_valid_instruction_names()) + r')(?:\s+(.*))?\s*$', re.IGNORECASE)
 
         self.comment_start_pattern = re.compile(r'\s*[' + Config.get_comment_symbols_pattern() + r'].*$')
 
         self.include_file_pattern = re.compile(r'^\s*include\s+[\"\'“”‘’]([a-zA-Z0-9_\-]+\.asm)[\"\'“”‘’]\s*$')
 
+    def restart(self):
+        self.lookup_table = {}
+        self.instructions = []
+        self.sourceCodeInstructions = []
+        self.errors = []
+        self.pointer = Pointer(0)
+        self.main_label_index = -1
+        self.lookup_table_validation = []
+        self.include_stack = []
 
     def assemble(self, file_path: str) -> Runnable:
+        self.restart()
         try:
             self.assemble_file(file_path)
         except Exception as e:
@@ -66,7 +75,7 @@ class Assembler:
             """
 
 
-        runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table)
+        runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table, file_path)
         #runnable.show_status()                                                                                         # debug
         print("\nEnsamblado exitoso.")
 
@@ -78,7 +87,7 @@ class Assembler:
                 print(f"Ensamblando archivo: {file.name}")
 
                 for line_num, line in enumerate(file, 1):
-                    #print(f"Linea {line_num}: {line}")                                                                 # debug
+                    # print(f"Linea {line_num}: {line}")                                                                 # debug
 
                     # Elimino los comentarios y espacios extra
                     original_line = line.rstrip()

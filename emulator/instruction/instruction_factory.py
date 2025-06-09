@@ -15,6 +15,21 @@ from emulator.instruction.pop import Pop
 from emulator.instruction.call import Call
 from emulator.instruction.ret import Ret
 
+INSTRUCTION_SET = [                                                         # Instrucciones validas
+    Mov.instruction_name(),
+    Add.instruction_name(),
+    Inc.instruction_name(),
+    Jmp.instruction_name(),
+    Jnz.instruction_name(),
+    Cmp.instruction_name(),
+    Dec.instruction_name(),
+    Noop.instruction_name(),
+    Push.instruction_name(),
+    Pop.instruction_name(),
+    Call.instruction_name(),
+    Ret.instruction_name()
+]   
+
 class InstructionFactory:
     REGISTER_PARAM_TYPE = 'register'
     IMMEDIATE_PARAM_TYPE = 'immediate'
@@ -34,6 +49,10 @@ class InstructionFactory:
         Ret.instruction_name().lower(): (Ret, []),
     }
     LABEL_FORMAT_PATTERN = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+
+    @staticmethod
+    def get_valid_instruction_names() -> list[str]:
+        return INSTRUCTION_SET
 
     @staticmethod
     def create_instruction(name: str, raw_params: List[str]) -> Instruction:
