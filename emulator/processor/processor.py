@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from emulator.operating_system.operating_system import OperatingSystem
 
+
+
 class ProcessorStatus(Enum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
@@ -28,6 +30,7 @@ class Processor:
         self.emulator_cli: EmulatorCLI = emulator_cli
         self.operating_system: "OperatingSystem" = operating_system
         self.status: ProcessorStatus = ProcessorStatus.INACTIVE
+        self.video_memory: list[list[int]] = [[0 for _ in range(Config.get_video_memory_width())] for _ in range(Config.get_video_memory_height())]
 
     def get_registers(self):
         return self.registers
@@ -65,6 +68,9 @@ class Processor:
     def set_status(self, status: ProcessorStatus):
         self.status = status
 
+    def get_operating_system(self):
+        return self.operating_system
+
     def set_operating_system(self, operating_system: "OperatingSystem"):
         self.operating_system = operating_system
         self.status = ProcessorStatus.ACTIVE
@@ -74,11 +80,18 @@ class Processor:
         self.flag = process.get_context().get_flag()
         self.ip = Pointer(process.get_context().get_ip().get_index())
         self.current_process = process
+        self.video_memory = process.get_context().get_video_memory().copy()
 
     def set_first_process(self, current_process: Process):
         self.current_process = current_process
         self.ip = Pointer(current_process.get_runnable().get_main_index())
-    
+
+    def get_video_memory(self):
+        return self.video_memory
+
+    def set_video_memory(self, video_memory: list[list[int]]):
+        self.video_memory = video_memory
+
     def process(self):
         self.emulator_cli.draw_view(self)
         time.sleep(Config.get_auto_run_interval_seconds())

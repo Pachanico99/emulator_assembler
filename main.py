@@ -12,8 +12,7 @@ def main():
 
     for file_path in sys.argv[1:]:
         runnable = assembler.assemble(file_path)
-        # time.sleep(1.5)                                                                 # debug
-        # Si se ensamblo correctamente
+        # time.sleep(1.5)                                                              # debug
         if runnable:                                
             runnables.append(runnable)
         else:

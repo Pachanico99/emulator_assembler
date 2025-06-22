@@ -8,6 +8,9 @@ LABEL_MAIN_NAME = "main"                                                    # Et
 COMMENT_SYMBOLS = ['#',';']                                                 # Simbolos de comentario
 QUANTITY_OF_INSTRUCTIONS_PER_BURST = 3                                      # Cantidad de instrucciones por rafaga de ejecucion
 
+VIDEO_MEMORY_WIDTH = 10
+VIDEO_MEMORY_HEIGHT = 10
+
 import re
 class Config:
 
@@ -45,4 +48,12 @@ class Config:
 
     @staticmethod
     def get_auto_run_interval_seconds() -> int:
-        return 0.1
+        return 1
+
+    @staticmethod
+    def get_video_memory_width() -> int:
+        return VIDEO_MEMORY_WIDTH
+
+    @staticmethod
+    def get_video_memory_height() -> int:
+        return VIDEO_MEMORY_HEIGHT

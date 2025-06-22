@@ -1,4 +1,5 @@
 from emulator.pointer.pointer import Pointer
+from emulator.config.config import Config
 
 class Context:
     def __init__(self, main_index: int=None):
@@ -10,6 +11,7 @@ class Context:
         }
         self.flag: bool = False
         self.ip = Pointer(main_index)
+        self.video_memory: list[list[int]] = [[0 for _ in range(Config.get_video_memory_width())] for _ in range(Config.get_video_memory_height())]
     
     def get_registers(self):
         return self.registers
@@ -31,3 +33,9 @@ class Context:
 
     def set_ip(self, ip: Pointer):
         self.ip = ip 
+
+    def get_video_memory(self):
+        return self.video_memory
+
+    def set_video_memory(self, video_memory: list[list[int]]):
+        self.video_memory = video_memory

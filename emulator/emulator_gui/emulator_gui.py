@@ -52,11 +52,22 @@ class EmulatorCLI:
 
         return state_lines[:self.screen_height]
 
+    def video_memory_lines(self, processor: "Processor"):
+        video_memory = processor.get_video_memory()
+        video_memory_lines = []
+        video_memory_lines.append("=" * self.left_col_width)
+        video_memory_lines.append("Video Memory:")
+        video_memory_lines.append("")
+        for row in video_memory:
+            video_memory_lines.append(" ".join(map(str, row)))
+        return video_memory_lines
+
     def draw_view(self, processor: "Processor"):
         
         os.system('cls' if os.name == 'nt' else 'clear')
 
         processor_state_lines = self.get_processor_state_lines(processor)
+        video_memory_lines = self.video_memory_lines(processor)
         instructions = processor.get_process().get_runnable().get_sourceCodeInstructions()
         num_instructions = len(instructions)
         current_ip_to_execute = processor.get_ip().get_index()
@@ -77,6 +88,10 @@ class EmulatorCLI:
 
         for i in range(self.screen_height):
             left_part = processor_state_lines[i]
+            if Config.get_video_memory_height() > i:
+                video_memory_part = video_memory_lines[i]
+            else:
+                video_memory_part = ""
             left_part_padded = f"{left_part:<{self.left_col_width}}"
 
             right_part_display = ""
@@ -103,4 +118,4 @@ class EmulatorCLI:
             else:
                 right_part_display = " " * self.code_col_width
 
-            print(f"{left_part_padded}| {right_part_display}")
+            print(f"{left_part_padded}| {right_part_display}| {video_memory_part}")

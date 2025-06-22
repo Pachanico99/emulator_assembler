@@ -29,6 +29,7 @@ class OperatingSystem:
                 context.set_registers(self.processor.get_registers().copy())
                 context.set_flag(self.processor.get_flag())
                 context.set_ip(Pointer(self.processor.get_ip().get_index()))
+                context.set_video_memory(self.processor.get_video_memory().copy())
                 self.processor.get_process().set_context(context)
                 self.processor.get_process().set_status(ProcessStatus.BLOCKED)
             
@@ -54,3 +55,14 @@ class OperatingSystem:
             attempts += 1
 
         return None
+
+    def system_call_handler(self, system_call_number, parameters):
+        if system_call_number == 1:
+            value, row, column = parameters
+            if row < 0 or row >= Config.get_video_memory_height():
+                raise RuntimeError("Fila fuera de rango")
+            if column < 0 or column >= Config.get_video_memory_width():
+                raise RuntimeError("Columna fuera de rango")
+            self.processor.get_video_memory()[row][column] = value
+        else:
+            raise RuntimeError("Servicio SO desconocido: %d" % system_call_number)
