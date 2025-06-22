@@ -6,7 +6,7 @@ class Noop(Instruction):
         pass
         
     def execute(self, processor: Processor):
-        pass
+        processor.increment_ip()
         
     @staticmethod
     def instruction_name() -> str:

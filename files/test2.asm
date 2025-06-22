@@ -26,7 +26,10 @@ add_section:
 
     mov cx, ax    ; Mover el resultado final (31) a cx
 
+mov
+ saeada
 
+ jnz dada2dasd
     ; Probar un salto simple
 some_label: ; Esta etiqueta es única ahora
     jmp end_program ; Saltar al final

@@ -6,6 +6,7 @@ from emulator.instruction.jnz import Jnz
 from emulator.instruction.jmp import Jmp
 from emulator.runnable.runnable import Runnable
 from emulator.config.config import Config
+import os
 
 class Assembler:
     def __init__(self):
@@ -13,62 +14,36 @@ class Assembler:
         self.instructions: list[Instruction] = []                              # Lista de instrucciones parseadas
         self.sourceCodeInstructions: list[str] = []                            # Lista de instrucciones sin parsear
         self.errors: list[str] = []                                            # Lista de errores encontrados
-        self.pointer = Pointer()                                               # Puntero
+        self.pointer = Pointer(0)                                              # Puntero
         self.main_label_index: int = -1                                        # Indice de la etiqueta de inicio
         self.lookup_table_validation: list[tuple[str, int]] = []               # Tabla de simbolos para validar {etiqueta: existencia}
+        self.include_stack: list[str] = []                                     # Pila de archivos incluidos
 
         # Defino los patrones de busqueda
         self.label_pattern = re.compile(r'^\s*[A-Za-z_][A-Za-z0-9_]*:\s*$')
 
-        self.instruction_pattern = re.compile(r'^\s*(' + Config.get_valid_instruction_pattern() + r')(?:\s+(.*))?\s*$')
+        self.instruction_pattern = re.compile(r'^\s*(' + '|'.join(InstructionFactory.get_valid_instruction_names()) + r')(?:\s+(.*))?\s*$', re.IGNORECASE)
 
         self.comment_start_pattern = re.compile(r'\s*[' + Config.get_comment_symbols_pattern() + r'].*$')
 
+        self.include_file_pattern = re.compile(r'^\s*include\s+[\"\'“”‘’]([a-zA-Z0-9_\-]+\.asm)[\"\'“”‘’]\s*$')
+
+    def restart(self):
+        self.lookup_table = {}
+        self.instructions = []
+        self.sourceCodeInstructions = []
+        self.errors = []
+        self.pointer = Pointer(0)
+        self.main_label_index = -1
+        self.lookup_table_validation = []
+        self.include_stack = []
+
     def assemble(self, file_path: str) -> Runnable:
+        self.restart()
         try:
-            with open(file_path, 'r') as file:
-                print(f"Ensamblando archivo: {file.name}")
-
-                for line_num, line in enumerate(file, 1):
-                    #print(f"Línea {line_num}: {line}")                                                                 # debug
-
-                    # Elimino los comentarios y espacios extra
-                    original_line = line.rstrip()
-                    line_without_comment = self.extractComment(original_line)
-                    line_stripped = line_without_comment.strip()
-
-                    #print(f"Línea {line_num}: {line_stripped}")                                                        # debug
-
-                    # Ignoro las lineas vacias o que son solo comentarios
-                    if not line_stripped:
-                        continue
-
-                    try:
-                        if self.isLabel(line_stripped):
-                            label = line_stripped[:-1].lower() # tomo todo menos los :
-                            if label == Config.get_label_main_name():
-                                self.main_label_index = self.pointer.get_index()
-                                
-                            if label in self.lookup_table:
-                                # Si esta, entonces es una etiqueta duplicada y genero un error
-                                self.errors.append(f"[Línea {line_num}] Error: Etiqueta duplicada '{label}'")
-
-                            self.lookup_table[label] = self.pointer.get_index()
-                            self.instructions.append(InstructionFactory.create_noop())
-
-                        else:
-                            instruction = self.parsear_instruccion(line_stripped, line_num)
-                            self.instructions.append(instruction)
-
-                        self.pointer.increment()
-                        self.sourceCodeInstructions.append(line_stripped)
-                    except Exception as e:
-                        self.errors.append(f"[Línea {line_num}] Error: {str(e)}")
-                
-        except FileNotFoundError:
-            self.errors.append(f"Archivo no encontrado '{file_path}'")
+            self.assemble_file(file_path)
         except Exception as e:
-            self.errors.append(f"Error al leer el archivo: {str(e)}")
+            self.main_label_index = 0
 
         # Reviso que este la etiqueta main
         if self.main_label_index == -1:
@@ -77,7 +52,7 @@ class Assembler:
         # Reviso que las etiquetas que se usaron en las instrucciones existan
         for label, index in self.lookup_table_validation:
             if label not in self.lookup_table:
-                self.errors.append(f"[Línea {index}] Error: Etiqueta '{label}' no encontrada en el archivo.")
+                self.errors.append(f"[Linea {index}] Error: Etiqueta '{label}' no encontrada en el archivo.")
 
         # Reporto los errores
         if self.errors:
@@ -99,18 +74,84 @@ class Assembler:
                 print("Name <" + instr.instruction_name() + ">" + ", Pos <" + str(index) + ">")
             """
 
-        runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table)
-        #runnable.show_status()
+
+        runnable = Runnable(self.main_label_index, self.instructions, self.sourceCodeInstructions, self.lookup_table, file_path)
+        #runnable.show_status()                                                                                         # debug
         print("\nEnsamblado exitoso.")
 
         return runnable
+
+    def assemble_file(self, file_path: str):
+        try:
+            with open(file_path, 'r') as file:
+                print(f"Ensamblando archivo: {file.name}")
+
+                for line_num, line in enumerate(file, 1):
+                    # print(f"Linea {line_num}: {line}")                                                                 # debug
+
+                    # Elimino los comentarios y espacios extra
+                    original_line = line.rstrip()
+                    line_without_comment = self.extractComment(original_line)
+                    line_stripped = line_without_comment.strip()
+
+                    #print(f"Linea {line_num}: {line_stripped}")                                                        # debug
+
+                    # Ignoro las lineas vacias o que son solo comentarios
+                    if not line_stripped:
+                        continue
+
+                    try:
+                        if self.isInclude(line_stripped):
+                            included_filename = self.get_included_filename(line_stripped) 
+                            include_file_path = os.path.join(".\\files", included_filename)
+                            #print("----------------")                                                                  # debug
+                            #print(include_file_path)                                                                   # debug
+                            #print("----------------")                                                                  # debug
+
+                            if include_file_path in self.include_stack:
+                                error_msg = f"[Línea {line_num}] Error: Referencia circular detectada: '{include_file_path}'"
+                                raise Exception(error_msg)
+
+                            self.include_stack.append(include_file_path)
+                            self.assemble_file(include_file_path)
+                            self.include_stack.pop()
+
+                        elif self.isLabel(line_stripped):
+                            label = line_stripped[:-1].lower() # tomo todo menos los :
+                            if label == Config.get_label_main_name():
+                                self.main_label_index = self.pointer.get_index()
+                                
+                            if label in self.lookup_table:
+                                # Si esta, entonces es una etiqueta duplicada y genero un error
+                                self.errors.append(f"[Linea {line_num}] Error: Etiqueta duplicada '{label}'")
+
+                            self.lookup_table[label] = self.pointer.get_index()
+                            self.instructions.append(InstructionFactory.create_noop())
+                            self.pointer.increment()
+                            self.sourceCodeInstructions.append(line_stripped)   
+
+                        else:
+                            instruction = self.parsear_instruccion(line_stripped, line_num)
+                            self.instructions.append(instruction)
+                            self.pointer.increment()
+                            self.sourceCodeInstructions.append(line_stripped)
+
+                    except FileNotFoundError:
+                        self.errors.append(f"[Linea {line_num}] Error: Archivo no encontrado '{include_file_path}'")
+                    except Exception as e:
+                        self.errors.append(f"[Linea {line_num}] Error: {str(e)}")
+                
+        except FileNotFoundError:
+            self.errors.append(f"Archivo no encontrado '{file_path}'")
+        except Exception as e:
+            self.errors.append(f"Error al leer el archivo: {str(e)}")
+            raise Exception(f"Error al leer el archivo: {str(e)}")
 
     def extractComment(self, line: str) -> str:
         match = self.comment_start_pattern.search(line)
         if match:
             return line[:match.start()]
         return line
-
 
     def isOnlyComment(self, line: str) -> bool:
         line_leading_stripped = line.lstrip()
@@ -124,6 +165,14 @@ class Assembler:
     def isLabel(self, line: str) -> bool:
         return self.label_pattern.fullmatch(line) is not None
 
+    def isInclude(self, line: str) -> bool:
+        return self.include_file_pattern.fullmatch(line) is not None
+
+    def get_included_filename(self, line: str) -> str:
+        match = self.include_file_pattern.fullmatch(line)
+        if match:
+            return match.group(1)
+
     def parsear_instruccion(self, line: str, index: int) -> Instruction:
         match = self.instruction_pattern.fullmatch(line)
         #print(match)                                                                                                   # debug                   
@@ -132,7 +181,7 @@ class Assembler:
             name = match.group(1).lower()
             params = match.group(2)
 
-            #print(f"Nombre: {name}, Parámetros: {params}")                                                             # debug
+            #print(f"Nombre: {name}, Parametros: {params}")                                                             # debug
 
             # Los separo por coma y saco los espacios
             if params is not None:

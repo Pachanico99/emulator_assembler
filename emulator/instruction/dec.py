@@ -9,6 +9,7 @@ class Dec(Instruction):
         current_value = processor.get_register(self.register)
         decrement = current_value - 1
         processor.set_register(self.register, decrement)
+        processor.increment_ip()
 
     def set_values(self, register, processor: Processor):
         if isinstance(register, str):

@@ -1,50 +1,76 @@
 import os
-import time
-from emulator.processor.processor import Processor
 from emulator.config.config import Config
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from emulator.processor.processor import Processor
 
 class EmulatorCLI:
-    def __init__(self, processor: Processor):
-        self.running = True
-        self.paused = False
+    def __init__(self):
         self.scroll_offset = 0
         
-        self.screen_height = 30
+        self.screen_height = 25
         self.left_col_width = 30
         self.code_col_width = 50
-
-        self.auto_run_interval_seconds = 0.12
-        self.processor = processor
 
         self.COLOR_YELLOW = "\033[93m"   
         self.COLOR_RESET = "\033[0m"    # Blanco
         if os.name == 'nt':
             os.system('')
 
-    def get_processor_state_lines(self):
+    def get_processor_state_lines(self, processor: "Processor"):
+        
+        q_instructions = len(processor.get_process().get_runnable().get_instructions())
         state_lines = []
+        state_lines.append("Archivo: ")
+        state_lines.append(processor.get_process().get_runnable().get_file_name())
+        state_lines.append("=" * self.left_col_width)
         state_lines.append("Estado del procesador:")
-        state_lines.append(f" IP: {self.processor.ip.get_index()}")
-        state_lines.append(f" Flag: {self.processor.get_flag()}")
-        state_lines.append(" Registros:")
+        state_lines.append(f" IP: {processor.get_ip().get_index()}")
+        state_lines.append(f" Status: {processor.get_status().value}")
+        state_lines.append(f" Flag: {processor.get_flag()}")
+        state_lines.append(f" Registros:")
         
         for register in Config.get_valid_registers():
-            register_value = self.processor.get_register(register)
+            register_value = processor.get_register(register)
             state_lines.append(f"   {register}: {register_value}")
-        
+
+        state_lines.append(" Stack:")
+        # Reservo los espacios para "====" y "Cantidad de instrucciones"
+        reserved_lines = 3
+        max_lines_available = self.screen_height - len(state_lines) - reserved_lines
+        stack_to_show = list(reversed(processor.get_process().get_stack()))[:max_lines_available]
+
+        for i, value in enumerate(stack_to_show):
+            state_lines.append(f"   {len(processor.get_process().get_stack()) - 1 - i}: {value}")
+
         state_lines.append("=" * self.left_col_width)
+        state_lines.append(" Cantidad de instrucciones:")
+        state_lines.append(f" {q_instructions}")
 
         while len(state_lines) < self.screen_height:
             state_lines.append("")
+
         return state_lines[:self.screen_height]
 
-    def draw_view(self):
+    def video_memory_lines(self, processor: "Processor"):
+        video_memory = processor.get_video_memory()
+        video_memory_lines = []
+        video_memory_lines.append("=" * self.left_col_width)
+        video_memory_lines.append("Video Memory:")
+        video_memory_lines.append("")
+        for row in video_memory:
+            video_memory_lines.append(" ".join(map(str, row)))
+        return video_memory_lines
+
+    def draw_view(self, processor: "Processor"):
+        
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        processor_state_lines = self.get_processor_state_lines()
-        instructions = self.processor.runnable.sourceCodeInstructions
+        processor_state_lines = self.get_processor_state_lines(processor)
+        video_memory_lines = self.video_memory_lines(processor)
+        instructions = processor.get_process().get_runnable().get_sourceCodeInstructions()
         num_instructions = len(instructions)
-        current_ip_to_execute = self.processor.ip.get_index()
+        current_ip_to_execute = processor.get_ip().get_index()
 
         if num_instructions > self.screen_height:
             if current_ip_to_execute >= self.scroll_offset + self.screen_height:
@@ -62,6 +88,10 @@ class EmulatorCLI:
 
         for i in range(self.screen_height):
             left_part = processor_state_lines[i]
+            if Config.get_video_memory_height() > i:
+                video_memory_part = video_memory_lines[i]
+            else:
+                video_memory_part = ""
             left_part_padded = f"{left_part:<{self.left_col_width}}"
 
             right_part_display = ""
@@ -88,23 +118,4 @@ class EmulatorCLI:
             else:
                 right_part_display = " " * self.code_col_width
 
-            print(f"{left_part_padded}| {right_part_display}")
-
-    def run(self):
-        try:
-            while self.running: 
-
-                current_ip = self.processor.ip.get_index()
-                num_instructions = len(self.processor.runnable.sourceCodeInstructions)
-                
-                if not self.paused and current_ip < num_instructions and self.running:
-                    time.sleep(self.auto_run_interval_seconds)
-                    self.draw_view()
-                    self.processor.step()
-                elif self.paused and self.running:
-                    pass 
-                elif current_ip >= num_instructions:
-                    self.running = False
-
-        finally:
-            print("Terminando el emulador...")
+            print(f"{left_part_padded}| {right_part_display}| {video_memory_part}")

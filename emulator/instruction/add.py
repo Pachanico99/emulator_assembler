@@ -11,6 +11,7 @@ class Add(Instruction):
 
         sum = processor.get_register(self.register) + self.value
         processor.set_register(self.register, sum)
+        processor.increment_ip()
 
     def set_values(self, value, processor: Processor):
         if isinstance(value, str):
