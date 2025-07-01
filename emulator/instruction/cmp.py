@@ -11,7 +11,7 @@ class Cmp(Instruction):
     def execute(self, processor: Processor):
         self.set_values(processor)
         
-        if self.register_value == self.value:
+        if self.register_value >= self.value:
             processor.set_flag_false()
         else:
             processor.set_flag_true()
@@ -24,7 +24,10 @@ class Cmp(Instruction):
         else:
             self.value = self.value_raw
 
-        self.register_value = processor.get_register(self.register_name)
+        if isinstance(self.register_name, str):
+            self.register_value = processor.get_register(self.register_name)
+        else:
+            self.register_value = self.register_name
 
     @staticmethod
     def instruction_name() -> str:

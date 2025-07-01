@@ -2,7 +2,7 @@
 INPUT_FILE = './files/funciones-main.asm'
 
 # --- Configuración de Validaciones --- # 
-VALID_REGISTERS = ["ax", "bx", "cx", "dx"]                                  # Registros valido
+VALID_REGISTERS = ["ax", "bx", "cx", "dx", "aux"]                                  # Registros valido
                                 
 LABEL_MAIN_NAME = "main"                                                    # Etiqueta principal
 COMMENT_SYMBOLS = ['#',';']                                                 # Simbolos de comentario
@@ -48,7 +48,7 @@ class Config:
 
     @staticmethod
     def get_auto_run_interval_seconds() -> int:
-        return 1
+        return 0.1
 
     @staticmethod
     def get_video_memory_width() -> int:

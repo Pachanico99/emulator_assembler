@@ -7,7 +7,8 @@ class Context:
             'ax': 0,
             'bx': 0,
             'cx': 0,
-            'dx': 0
+            'dx': 0,
+            'aux': 0
         }
         self.flag: bool = False
         self.ip = Pointer(main_index)

@@ -87,7 +87,7 @@ class Assembler:
                 print(f"Ensamblando archivo: {file.name}")
 
                 for line_num, line in enumerate(file, 1):
-                    # print(f"Linea {line_num}: {line}")                                                                 # debug
+                    print(f"Linea {line_num}: {line}")                                                                 # debug
 
                     # Elimino los comentarios y espacios extra
                     original_line = line.rstrip()

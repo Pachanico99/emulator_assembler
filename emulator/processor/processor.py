@@ -10,8 +10,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from emulator.operating_system.operating_system import OperatingSystem
 
-
-
 class ProcessorStatus(Enum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
@@ -22,7 +20,8 @@ class Processor:
             'ax': 0,
             'bx': 0,
             'cx': 0,
-            'dx': 0
+            'dx': 0,
+            'aux': 0
         }
         self.flag: bool = False
         self.ip: Pointer = None
