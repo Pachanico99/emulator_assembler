@@ -24,6 +24,7 @@ class Processor:
             'aux': 0
         }
         self.flag: bool = False
+        self.flag_eq: bool = False
         self.ip: Pointer = None
         self.current_process: Process = process
         self.emulator_cli: EmulatorCLI = emulator_cli
@@ -34,14 +35,17 @@ class Processor:
     def get_registers(self):
         return self.registers
     
-    def set_flag_false(self):
-        self.flag = False
+    def set_flag(self, flag: bool):
+        self.flag = flag
 
-    def set_flag_true(self):
-        self.flag = True
+    def set_flag_eq(self, flag: bool):
+        self.flag_eq = flag
 
     def get_flag(self):
         return self.flag
+
+    def get_flag_eq(self):
+        return self.flag_eq
 
     def increment_ip(self):
         self.ip.increment()

@@ -15,6 +15,9 @@ from emulator.instruction.pop import Pop
 from emulator.instruction.call import Call
 from emulator.instruction.ret import Ret
 from emulator.instruction.int import Int
+from emulator.instruction.je import Je
+from emulator.instruction.jg import Jg
+from emulator.instruction.jl import Jl
 
 INSTRUCTION_SET = [                                                         # Instrucciones validas
     Mov.instruction_name(),
@@ -29,7 +32,10 @@ INSTRUCTION_SET = [                                                         # In
     Pop.instruction_name(),
     Call.instruction_name(),
     Ret.instruction_name(),
-    Int.instruction_name()
+    Int.instruction_name(),
+    Je.instruction_name(),
+    Jg.instruction_name(),
+    Jl.instruction_name()
 ]   
 
 class InstructionFactory:
@@ -50,6 +56,9 @@ class InstructionFactory:
         Call.instruction_name().lower(): (Call, [LABEL_PARAM_TYPE]),
         Ret.instruction_name().lower(): (Ret, []),
         Int.instruction_name().lower(): (Int, [IMMEDIATE_PARAM_TYPE]),
+        Je.instruction_name().lower(): (Je, [LABEL_PARAM_TYPE]),
+        Jg.instruction_name().lower(): (Jg, [LABEL_PARAM_TYPE]),
+        Jl.instruction_name().lower(): (Jl, [LABEL_PARAM_TYPE])
     }
     LABEL_FORMAT_PATTERN = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 

@@ -48,8 +48,7 @@ class Config:
 
     @staticmethod
     def get_auto_run_interval_seconds() -> int:
-        return 0.1
-
+        return 0.001
     @staticmethod
     def get_video_memory_width() -> int:
         return VIDEO_MEMORY_WIDTH

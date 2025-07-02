@@ -10,8 +10,6 @@
         Add ax, bx
         Ret
 
-
-
     ; --- RESTAR ---
     restar:
         Pop aux
@@ -68,35 +66,82 @@
 
     ; --- RAIZ CUADRADA --- no funca de momento
     sqrt:
-        Pop aux
-        Pop bx         ; número del cual sacar raíz
-        Push aux
+    Pop aux
+    Pop bx             ; número del cual sacar raíz
+    Push aux
 
-        ; si bx == 0 → raíz = 0
-        Cmp 0, bx
-        Jnz sqrt_iniciar
+    ; si bx == 0 → raíz = 0
+    Cmp 0, bx
+    Je sqrt_es_cero
+    Jmp sqrt_iniciar
+
+    sqrt_es_cero:
         Mov ax, 0
         Ret
 
-        sqrt_iniciar:
-            Mov cx, 0         ; cx = candidato a raíz
-            Mov dx, bx        ; dx = número original
+    sqrt_iniciar:
+        Mov cx, 0       ; candidato a raíz
+        Mov dx, bx      ; guardar valor original
 
-        sqrt_loop:
-            Inc cx            ; aumenta el valor del radicando
+    sqrt_loop:
+        Inc cx          ; cx++
 
-            Push cx           ; guardar valor de cx original
-            Push cx           ; op2
-            Push cx           ; op1
-            Call multiplicar
+        ; calcular cx * cx → resultado queda en ax
+        Push cx
+        Push cx
+        Push cx
+        Call multiplicar
 
-            Pop cx            ; restaurar cx original
+        Pop cx
 
-            Cmp dx, ax
-            Jnz sqrt_fin      ; si ax > dx → cortar
-            Jmp sqrt_loop
+        ; comparar resultado (ax) con bx (dx)
+        Cmp ax, dx
+        Je sqrt_fin_eq     ; si ax == dx → terminamos
+        Jg sqrt_fin     ; si ax > dx → terminamos
+        Jmp sqrt_loop
 
-        sqrt_fin:
-            Dec cx
-            Mov ax, cx        ; raíz entera más cercana
-            Ret
+    sqrt_fin_eq:
+        Mov ax, cx
+        Ret
+
+    sqrt_fin:
+        Dec cx          ; retroceder uno porque se pasó
+        Mov ax, cx
+        Ret
+
+
+
+    ; --- DIVIDIR ---
+    dividir:
+    Pop aux
+    Pop cx         ; divisor
+    Pop bx         ; dividendo
+    Push aux
+
+    Cmp cx, 0
+    Je division_error
+
+    Mov dx, bx     ; dx = resto
+    Mov ax, 0      ; ax = cociente
+
+division_loop:
+    Cmp dx, cx
+    Jl division_fin
+
+    Push ax
+    Push dx
+    Push cx
+    Call restar
+
+    Mov dx, ax
+    Pop ax
+    Inc ax
+    Jmp division_loop
+
+division_fin:
+    Ret
+
+division_error:
+    Mov ax, 0
+    Mov dx, bx
+    Ret

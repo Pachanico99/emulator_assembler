@@ -4,18 +4,20 @@ from emulator.processor.processor import Processor
 class Add(Instruction):
     def __init__(self, register, value):
         self.register = register
-        self.value = value
+        self.value = None
+        self.value_raw = value
 
     def execute(self, processor: Processor):
-        self.set_values(self.value, processor)
+        self.value = self.get_value(self.value_raw, processor)
 
         sum = processor.get_register(self.register) + self.value
         processor.set_register(self.register, sum)
         processor.increment_ip()
 
-    def set_values(self, value, processor: Processor):
+    def get_value(self, value, processor: Processor) -> int:
         if isinstance(value, str):
-            self.value = processor.get_register(value)
+            return processor.get_register(value)
+        return int(value)
 
     @staticmethod
     def instruction_name() -> str:
