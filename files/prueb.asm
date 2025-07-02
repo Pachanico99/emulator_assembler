@@ -32,18 +32,21 @@ main:
     Int 1
 
     push 1
+    push 1
     call restar
     mov bx, 4
     mov cx, 1
     int 1
 
     push 16
+    push 2
     call restar
     mov bx, 4
     mov cx, 2
     int 1
 
     push 8
+    push 2
     call restar
     mov bx, 4
     mov cx, 3
